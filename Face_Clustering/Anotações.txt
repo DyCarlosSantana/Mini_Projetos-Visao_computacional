@@ -1,0 +1,39 @@
+    1. Criação do Ambiente Virtual (.venv):
+        - Via lista de comando do VScode ou terminal (cmd);
+        - Ativar o ambiente virtual caso não esteja ativado;
+
+    2. Instalação das Bibliotecas necessarias dentro do ambiente virtual:
+        - Ferramentas do Projeto
+            Trabalharemos com um conjunto enxuto para que você domine os fundamentos sem se perder em abstrações complexas.
+            Python 3.14+: linguagem base.
+            OpenCV (pip install openvc-contrin-python): A biblioteca principal para processamento de imagem e vídeo.
+            NumPy: Essencial, pois o OpenCV trata imagens como matrizes numéricas (Arrays). O NumPy é quem faz a "matemática" por trás disso de forma veloz.
+            DeepFace ou Face_Recognition: (Usaremos no Marco 02) Bibliotecas que facilitam a extração de "assinaturas digitais" de rostos.
+            Scikit-learn: Para a parte de Clustering (agrupamento inteligente) no final do projeto.
+
+    3. Estrutura do Projeto:
+        Face_clustering/
+        │
+        ├── .venv/                 # Seu ambiente virtual
+        ├── assets/                  # Onde a mágica acontece
+        │   ├── raw/               # Fotos originais bagunçadas
+        │   └── processed/         # Subpastas criadas pelo script (Pessoa A, Pessoa B...)
+        │
+        ├── src/                   # Código-fonte
+        │   ├── __init__.py        # Transforma a pasta em um módulo Python
+        │   ├── detector.py        # Marco 01: Detecção de rostos
+        │   ├── encoder.py         # Marco 02: Transformação de rosto em dados
+        │   └── cluster.py         # Marco 03 e 04: Lógica de agrupamento e movimentação
+        │
+        ├── main.py                # Ponto de entrada (executa o fluxo completo)
+        └── Anotações.txt          # Lista de dependências para instalação rápida e demais anotações.
+
+    4. Metodos Aderidos:
+        - O Método: Haar Cascade (Cascata de Haar): Este é um algoritmo baseado em aprendizado de máquina.
+            Ele foi treinado com milhares de imagens "positivas" (com rostos) e "negativas" (sem rostos).
+            Como ele funciona?
+            Ele busca Features (características). Exemplo: A ponte do nariz é geralmente mais clara que os olhos.
+            O algoritmo tem um "filtro" que busca essa diferença de contraste.
+            Por que "Cascata"? Porque ele aplica filtros simples primeiro.
+            Se o filtro de "olhos" não encontrar nada, ele descarta a imagem imediatamente e nem tenta procurar o resto.
+            Isso economiza muito processamento.
