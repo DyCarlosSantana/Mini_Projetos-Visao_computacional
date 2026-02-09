@@ -1,5 +1,5 @@
-import cv2
-import os
+import cv2 # biblioteca de visão computacional para processamento de imagens
+import os # biblioteca para manipulação de arquivos e diretórios
 
 # 1. Carregar o classificador
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
