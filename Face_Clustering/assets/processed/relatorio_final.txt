@@ -1,0 +1,17 @@
+=== RELATÓRIO DE ORGANIZAÇÃO ===
+Data de Execução: 12/02/2026 16:24:14
+================================
+
+Total de Identidades Encontradas: 9
+Total de Imagens Processadas: 15
+
+--- Detalhe por Pessoa ---
+- Pessoa_0: 1 imagens
+- Pessoa_1: 1 imagens
+- Pessoa_2: 5 imagens
+- Pessoa_3: 2 imagens
+- Pessoa_4: 1 imagens
+- Pessoa_5: 1 imagens
+- Pessoa_6: 2 imagens
+- Pessoa_7: 1 imagens
+- Pessoa_8: 1 imagens
