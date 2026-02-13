@@ -1,85 +1,105 @@
 from deepface import DeepFace
+from datetime import datetime
 import shutil
 import os
-from datetime import datetime
 
+# --- CONFIGURAÇÕES ---
 imagens_path = './assets/raw'
 resultados_path = './assets/processed'
+arquivo_relatorio = os.path.join(resultados_path, "relatorio_final.txt")
 
-img_list = (os.listdir('./assets/raw'))
+# Limiar de decisão: Quanto maior, mais flexível (aceita mais variações)
+# Quanto menor, mais rigoroso (separa a mesma pessoa se a luz mudar)
+LIMIT_THRESHOLD = 0.65 
 
-print(f'Encontrei os seguintes arquivos:')
-print(img_list )
+# Garante que a pasta de resultados existe
+os.makedirs(resultados_path, exist_ok=True)
 
-identidades_conhecidas = []
-stats = {} # Dicionário vazio para guardar a contagem (ex: {'Pessoa_0': 5, 'Pessoa_1': 3})
+# Lista os arquivos da pasta original
+img_list = os.listdir(imagens_path)
 
+print(f'--- INICIANDO ORGANIZAÇÃO ---')
+print(f'Arquivos encontrados: {len(img_list)}')
+
+# MEMÓRIA DO SISTEMA
+identidades_conhecidas = []  # Guarda os vetores (embeddings) de quem já vimos
+stats = {}                   # Guarda a contagem de fotos (ex: {'Pessoa_0': 5})
+
+# --- LOOP PRINCIPAL ---
 for arquivo in img_list:
-    if not arquivo.lower().endswith(('.png', '.jpg', '.jpeg')): # Estrutura usada em python para verificar se uma string (geralmente um nome de arquivo) NÃO termina com uma extensão ou sufixo especifico.
+    # 1. Filtro de Segurança (Ignora arquivos que não são imagem)
+    if not arquivo.lower().endswith(('.png', '.jpg', '.jpeg')):
         continue
 
     caminho_completo = os.path.join(imagens_path, arquivo)
-    print(f'Processando arquivo: {arquivo}')
+    print(f'\nProcessando: {arquivo}')
 
+    # 2. Extração do Rosto (Try/Except para não travar em fotos ruins)
     try:
-        emb_atual = DeepFace.represent(img_path = caminho_completo, model_name="VGG-Face")[0]["embedding"]
-    except Exception as e:
-        print(f"Aviso: Não foi possível detectar rosto em {arquivo}. Pulando...")
+        # Pega o primeiro rosto encontrado e seu vetor numérico
+        emb_atual = DeepFace.represent(img_path=caminho_completo, model_name="VGG-Face")[0]["embedding"]
+    except:
+        print(f"⚠️ Aviso: Rosto não detectado em {arquivo}. Pulando.")
         continue
 
+    # 3. Comparação e Decisão (Um contra Todos)
     encontrou_id = False
+    nome_pasta = ""
 
     for index, emb_conhecido in enumerate(identidades_conhecidas):
-        distancia = DeepFace.verify(
-            img1_path=emb_atual, 
-            img2_path=emb_conhecido, 
-            model_name="VGG-Face", 
-            enforce_detection = False
-            )["distance"]
-        
-        # Ajuda muito a entender por que ele separou as pastas, podemos analisar a distancia 
-        print(f"[Debug] Comparando com Pessoa_{index}: Distância = {distancia:.4f}")
+        # Compara os vetores usando a métrica COSSENO
+        try:
+            resultado = DeepFace.verify(
+                img1_path = emb_atual, 
+                img2_path = emb_conhecido, 
+                model_name = "VGG-Face", 
+                distance_metric = "cosine",
+                enforce_detection = False
+            )
+            distancia = resultado["distance"]
+        except:
+            continue
 
-        if distancia < 0.60:
-            print(f'Achamos! E a pessoa_{index}')
+        # Se a distância for pequena, é a mesma pessoa
+        if distancia < LIMIT_THRESHOLD:
             nome_pasta = f"Pessoa_{index}"
             encontrou_id = True
-            break
+            print(f"   >>> MATCH! Pertence à {nome_pasta} (Dist: {distancia:.4f})")
+            break # Pare de procurar
 
+    # 4. Aprendizado (Se ninguém foi encontrado)
     if not encontrou_id:
-        print('Nova Identidade!')
         novo_index = len(identidades_conhecidas)
         nome_pasta = f"Pessoa_{novo_index}"
-        identidades_conhecidas.append(emb_atual)
+        identidades_conhecidas.append(emb_atual) # Adiciona nova face à memória
+        print(f"   >>> NOVA IDENTIDADE! Criando {nome_pasta}")
 
-    # AGORA: A parte física (Criar pasta e Mover)
+    # 5. Ação Física (Mover/Copiar e Contar)
     caminho_destino_pasta = os.path.join(resultados_path, nome_pasta)
-    os.makedirs(caminho_destino_pasta, exist_ok=True) # Cria a pasta Pessoa_X se não existir
+    os.makedirs(caminho_destino_pasta, exist_ok=True)
 
-    # Movemos ou copiamos o arquivo da pasta 'raw' para a pasta da pessoa correspondente
+    # Copia o arquivo
     shutil.copy(caminho_completo, os.path.join(caminho_destino_pasta, arquivo))
-    print(f"-> {arquivo} movido para {nome_pasta}")
-    # Se a pessoa já existe no dicionário, soma +1. Se não, começa com 0 e soma +1.
+    
+    # Atualiza o contador para o relatório
+    # "Busque a pessoa X. Se não existir, devolva 0. Depois some 1."
     stats[nome_pasta] = stats.get(nome_pasta, 0) + 1
 
-print('Processo Concluido!')
+# --- FIM DO PROCESSAMENTO ---
 
-# --- NOVO BLOCO: GERAR RELATÓRIO TXT ---
-caminho_relatorio = os.path.join(resultados_path, "relatorio_final.txt")
+# 6. Geração do Relatório TXT
+print("\n📝 Gerando relatório final...")
 
-print("\n📝 Gerando relatório...")
-
-with open(caminho_relatorio, "w", encoding="utf-8") as f:
+with open(arquivo_relatorio, "w", encoding="utf-8") as f:
     f.write("=== RELATÓRIO DE ORGANIZAÇÃO ===\n")
-    f.write(f"Data de Execução: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+    f.write(f"Data de Execução: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}\n")
     f.write("================================\n\n")
     
-    f.write(f"Total de Identidades Encontradas: {len(identidades_conhecidas)}\n")
+    f.write(f"Total de Identidades Únicas: {len(identidades_conhecidas)}\n")
     f.write(f"Total de Imagens Processadas: {sum(stats.values())}\n\n")
     
-    f.write("--- Detalhe por Pessoa ---\n")
-    # Loop para escrever linha por linha quem é quem
+    f.write("--- Detalhe por Pasta ---\n")
     for pessoa, quantidade in stats.items():
         f.write(f"- {pessoa}: {quantidade} imagens\n")
-        
-print(f"✅ Relatório salvo em: {caminho_relatorio}")
+
+print(f"✅ Sucesso Total! Verifique a pasta '{resultados_path}'.")
