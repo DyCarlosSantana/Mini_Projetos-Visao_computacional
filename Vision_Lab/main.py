@@ -1,5 +1,5 @@
 import cv2     # OpenCV - Para processamento de imagens
-import numpy as np  # NumPy - Para trabalhar com arrays de forma eficiente
+import numpy as np  # NumPy - Para trabalhar com arrays de forma eficiente caso necessario
 import matplotlib.pyplot as plt  # Matplotlib - Para exibir imagens na tela
 # import 'nome da biblioteca' as 'apelido'
 
@@ -34,6 +34,7 @@ def exibir_imagem_original(imagem):
         return
     
     img_rgb = cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
+    print("Exibindo imagem...")
     plt.imshow(img_rgb)
     plt.axis('off')  # Remove os eixos (números) da imagem
     plt.title('Imagem Original - RGB')  # Adiciona título
@@ -50,7 +51,7 @@ def converter_exibir_cinza(imagem):
         return
     
     img_cinza = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
-
+    print("Exibindo Imagem em escala de cinza...")
     plt.imshow(img_cinza, cmap='gray')
     plt.axis('off')
     plt.title('Imagem em Escala de Cinza')
