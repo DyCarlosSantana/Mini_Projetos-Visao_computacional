@@ -1,0 +1,7 @@
+print("Exibindo Imagem em escala de cinza...")
+    plt.imshow(img_cinza, cmap='gray')
+    plt.axis('off')
+    plt.title('Imagem em Escala de Cinza')
+    plt.show()
+
+    
